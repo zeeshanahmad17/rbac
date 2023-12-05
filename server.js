@@ -1,34 +1,46 @@
-const express = require('express');
-const bp = require('body-parser');
-const cookieParser = require('cookie-parser');
-const mongoose = require('mongoose');
-const cors = require('cors');
-const userRouter = require('./routes/userRouter');
+const express = require("express");
+const bp = require("body-parser");
+const cookieParser = require("cookie-parser");
+const { secretKey, database } = require("./config");
+const mongoose = require("mongoose");
+const cors = require("cors");
+const router = require("./routes/router");
 const app = express();
 
 const PORT = process.env.PORT || 3000;
 
-mongoose.set('strictQuery', false); // Add this line to suppress the warning
+mongoose.set("strictQuery", false);
 
-//Connecting our database
-mongoose.connect(process.env.DB_CONNECT).then(() => {
-	console.log('MongoDB connected...');
-});
+// Connecting to MongoDB using Mongoose
+mongoose
+  .connect(`mongodb+srv://zeeshan:zeeshan@cluster0.ljsbo.mongodb.net/`, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
+  .then(() => {
+    console.log("MongoDB connected...");
+    app.listen(PORT, () => {
+      console.log(`Server started on port ${PORT}`);
+    });
+  })
+  .catch((err) => {
+    console.error("MongoDB connection error:", err);
+  });
 
 app.use(bp.json());
 app.use(cookieParser());
 app.use(bp.urlencoded({ extended: true }));
 
 const corsOptions = {
-	origin: 'http://localhost:3000',
-	credentials: true,
-	methods: ['GET', 'POST', 'PUT', 'DELETE'],
-	allowedHeaders: ['Content-Type', 'Authorization', 'Access-Control-Allow-Credentials'],
+  origin: "http://localhost:3000",
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  allowedHeaders: [
+    "Content-Type",
+    "Authorization",
+    "Access-Control-Allow-Credentials",
+  ],
 };
 
 app.use(cors(corsOptions));
-app.use('', userRouter);
-
-app.listen(PORT, () => {
-	console.log(`Server started on port ${PORT}`);
-});
+app.use("", router);
